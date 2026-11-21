@@ -1,0 +1,4 @@
+[fileManager]
+filenameTokens = {
+*.PDF = "PDFV",0,"PDFV",0
+}

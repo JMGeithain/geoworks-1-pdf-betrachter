@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "name": "pdfview",
+  "kind": "application",
+  "backend": "ensemble12",
+  "cpu": "8086",
+  "long_name": "PDF Betrachter",
+  "token": "PDFV",
+  "sources": [{"language": "nasm", "path": "pdfview.nasm"}],
+  "view": {"width": 640, "height": 460},
+  "native_runtime_tested": false,
+  "imports": [{"name": "pdfcore", "protocol": [1, 0]}]
+}

@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "name": "pdfcore",
+  "kind": "library",
+  "import_free": true,
+  "cpu": "8086",
+  "gp": "pdfcore.gp",
+  "sources": [{"path": "pdfcore_w.c", "language": "c"}],
+  "expected_export_count": 6
+}

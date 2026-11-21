@@ -1,0 +1,7 @@
+build/
+out/
+__pycache__/
+*.dl
+*.ct
+*.e[0-9]
+host/pdfhost

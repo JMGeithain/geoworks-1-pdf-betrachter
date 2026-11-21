@@ -1,0 +1,167 @@
+PDF-Betrachter fuer GeoWorks Ensemble 1.2 - Testversion 0.12d
+
+Installation (GeoWorks vorher sauber beenden):
+  PDFCORE.GEO  ->  GEOWORKS\SYSTEM
+  PDFVIEW.GEO  ->  GEOWORKS\WORLD
+  TEST.PDF     ->  GEOWORKS\DOCUMENT
+  TEST15.PDF   ->  GEOWORKS\DOCUMENT  (gleiche Datei als PDF 1.5)
+  BILDER.PDF   ->  GEOWORKS\DOCUMENT  (vier JPEG-Bilder, Farbe und Grau)
+  BILDER2.PDF  ->  GEOWORKS\DOCUMENT  (JPEG und PNG mit Transparenz)
+
+Menue Datei: Oeffnen (Ordner und PDFs, zuerst DOCUMENT), Schliessen, Info, Hilfe.
+In der Liste: [NAME] ist ein Ordner, [..] oder Ruecktaste = eine Ebene hoeher.
+
+Maus:
+  Knoepfe oben rechts: Erste, Zurueck, Weiter, Letzte, - und + (Zoom)
+  Scroll-Leisten: Pfeile schieben, Klick in die Leiste springt dorthin
+
+Tastatur (Ziffernblock):
+  9 / 3      Bild auf / Bild ab, am Seitenende weiterblaettern
+  8 2 4 6    schieben
+  7 / 1      erste / letzte Seite
+  + / -      Zoom
+  Leertaste, n / p, j / k  wie Bild ab, Seite vor/zurueck, schieben
+
+Bilder: 16 Farben (gerastert), JPEG, Transparenz. Progressive JPEG
+und CMYK-JPEG erscheinen noch als graue Platzhalter.
+
+PDF-Dateien per Doppelklick im GeoManager oeffnen:
+  In GEOWORKS\GEOS.INI im Abschnitt [fileManager] eintragen
+  (gibt es filenameTokens schon, nur die Zeile *.PDF ergaenzen):
+
+  [fileManager]
+  filenameTokens = {
+  *.PDF = "PDFV",0,"PDFV",0
+  }
+
+  Der erste Eintrag ist das Symbol, der zweite das Programm, das
+  startet. PDFVIEW.GEO muss in WORLD liegen. Danach GeoWorks neu
+  starten. Der PDF-Betrachter sollte vorher geschlossen sein.
+
+Neu in 0.12d:
+  Schneller bei Seiten mit Bildern (z.B. Bildschirmfotos in CCOM4.PDF):
+  keine 32-Bit-Divisionen mehr pro Bildpunkt, Zeilenadressen werden
+  nur einmal je Zeile berechnet. Nur noch ein Bildspeicher (64 KB)
+  statt zwei, damit "Speicher voll" nicht mehr auftritt.
+  Beide GEO-Dateien ersetzen.
+
+Neu in 0.12c:
+  "Speicher voll" behoben: die Bildspeicher (jetzt hoechstens zwei zu je
+  64 KB) werden erst beim Aufbau einer Seite angelegt, nur wenn genug
+  Speicher frei ist, und sofort wieder freigegeben, wenn die Seite keine
+  Bilder hat. Fehlt Speicher, werden Bilder groeber statt abzustuerzen.
+  Nur PDFVIEW.GEO ersetzen (PDFCORE.GEO aus 0.12b).
+
+Neu in 0.12b:
+  JPEG wird deutlich schneller entschluesselt (Tabellen statt Bit fuer
+  Bit, einfarbige Bloecke ohne Rechnung). Der Bildspeicher wird gerecht
+  auf alle Bilder einer Seite verteilt; vorher konnte das letzte Bild
+  abgeschnitten werden. Das letzte 8x8-Feld eines JPEG fehlte manchmal.
+  Nur PDFCORE.GEO ersetzen.
+
+Neu in 0.12:
+  Schaerfere Bilder: Bilder werden in bis zu drei eigene Speicherbloecke
+  (je 64 KB, verschiebbar) gelegt statt in den Seitenspeicher. Fotos
+  erscheinen meist in voller Bildschirmaufloesung, in 16 Farben wie in
+  Echtfarben. Reicht der Speicher nicht, wird wie bisher vergroebert.
+  Text erscheint in Echtfarben jetzt ebenfalls in seiner echten Farbe.
+  Der Farbtest (Taste f) ist entfernt; Hilfe und Info nennen die Taste e.
+  Beide GEO-Dateien ersetzen.
+
+Neu in 0.11e:
+  Absturz "bad handle passed to system" beim Start behoben: beim Lesen
+  der GEOS.INI wurde die Dateinummer verfaelscht. Nur PDFVIEW.GEO.
+
+Neu in 0.11d:
+  Absturz "bad handle passed to system" mit Echtfarben: Textfarben
+  werden jetzt als naechste der 16 Farben gesetzt (Flaechen und Bilder
+  weiter in Echtfarben). Beide GEO-Dateien ersetzen.
+
+Neu in 0.11c:
+  Auskommentierte Abschnitte ";[screen 0]" in der GEOS.INI werden
+  uebersprungen; vorher wurde der erste (16-Farben-)Eintrag gelesen.
+  Nur PDFVIEW.GEO hat sich geaendert.
+
+Neu in 0.11b:
+  JPEGs wurden je nach Zoom kaputt oder als grauer Kasten gezeigt, weil
+  das erste Bild der Seite fast den ganzen Speicher bekam. Jetzt erhaelt
+  jedes Bild seinen Anteil; bei starkem Zoom werden Bilder gross-
+  pixelig (bis 4x4) statt zu fehlen.
+  Die Statuszeile zeigt den Farbmodus: "Echtfarben" oder
+  "16 Farben (n)". n sagt, wie weit die Pruefung der GEOS.INI kam:
+  0 nicht geprueft, 1 GEOWORKS-Ordner nicht gefunden, 2 GEOS.INI nicht
+  geoeffnet, 3 kein [screen 0], 4 keine device-Zeile, 5 Treibername
+  ohne 64K/32K/TrueColor, 9 erkannt (dann mit e ausgeschaltet).
+
+Neu in 0.11:
+  Echtfarben mit 64K-/32K-/TrueColor-Bildschirmtreibern (z.B. BB72_64,
+  BB96_64, BB120_64): Text, Linien und Flaechen in ihren echten Farben,
+  Bilder als 24-Bit-Bitmaps ohne Rasterung. Der Betrachter erkennt den
+  Treiber am Eintrag "device" im Abschnitt [screen 0] der GEOS.INI.
+  Taste e schaltet Echtfarben von Hand ein und aus (z.B. falls die
+  Erkennung nicht greift). Mit 16-Farben-Treibern bleibt alles wie bisher.
+  Grosse Bilder werden in Echtfarben mit 2x2 bis 8x8 Punkten gezeichnet,
+  damit die Seite in den Speicher passt. Gedruckt wird weiter mit
+  16 Farben. Beide GEO-Dateien ersetzen.
+
+Neu in 0.10e:
+  JPEG-Bilder wurden in GeoWorks falsch entschluesselt (eine Rechentabelle
+  wurde aus dem falschen Speicher gelesen). Nur PDFCORE.GEO ersetzen.
+
+Neu in 0.10d:
+  Farbbilder werden zeilenweise ungepackt gezeichnet, weil gepackte
+  16-Farben-Bitmaps mit dem 64K-Treiber zerstueckelt erschienen.
+  Beide GEO-Dateien ersetzen.
+
+Neu in 0.10c:
+  Taste f in der Seitenansicht: Farbtest des Bildschirmtreibers
+  (nochmal f schaltet ihn aus). Oben links erscheinen vier Streifen:
+  1. 16 Farben (4 Bit), 2. Bitmap mit 8 Bit, 3. Bitmap mit 24 Bit
+  (rot nach rechts zunehmend, gruen abnehmend), 4. sieben Flaechen in
+  RGB-Farben (orange, violett, petrol, rosa, braun, hellgruen, dunkelblau).
+
+Neu in 0.10b:
+  Farbbilder ohne Transparenz wurden in GeoWorks zerstueckelt
+  gezeichnet. Nur PDFCORE.GEO hat sich geaendert.
+
+Neu in 0.10:
+  Farbige Bilder in 16 Farben statt schwarz-weiss.
+  JPEG-Bilder (Baseline, Graustufen und Farbe) werden angezeigt.
+  Transparente Bilder (Alpha-Kanal/SMask, Maske, Farbschluessel):
+  der Hintergrund bleibt sichtbar, halbtransparente Flaechen werden
+  aufgehellt. Grosse Bilder werden bei Platzmangel mit halber
+  Aufloesung gezeichnet (2x2 Punkte).
+  Fehler im Entpacker behoben, der manche komprimierten Daten
+  verfaelschte. Beide GEO-Dateien muessen zusammen ersetzt werden.
+
+Neu in 0.9:
+  Menue Datei: Oeffnen, Schliessen, Info, Drucken..., Faxen..., Verlassen;
+  eigenes Menue Hilfe. Drucken aller Seiten (bis 70) ueber den
+  GeoWorks-Druckdialog. Fenster kann bildschirmfuellend vergroessert
+  werden. Dateiliste mit Bildlaufleiste, Mausrad und Pos1/Ende.
+
+Neu in 0.8:
+  Drucken der aktuellen Seite ueber den GeoWorks-Druckdialog
+  (Spool-Bibliothek, wie beim Notizblock). Die Seite wird auf den
+  bedruckbaren Bereich eingepasst. Nur PDFVIEW.GEO hat sich geaendert.
+
+Neu in 0.7:
+  Bilder werden angezeigt (schwarz-weiss gerastert), auch Bildmasken
+  und Bilder in Formularobjekten. JPEG noch als grauer Platzhalter.
+  Eingebettete Type3-Schriften (z.B. aus dem GeoWorks-PDF-Treiber)
+  werden als Umrisse gezeichnet, auch gedreht.
+  Beide GEO-Dateien muessen zusammen ersetzt werden.
+
+Neu in 0.6:
+  Start mit einer PDF-Datei aus dem GeoManager (siehe oben).
+
+Neu in 0.5:
+  Ordner wechseln in der Dateiliste, sortiert: [..], Ordner, PDFs.
+  Restlicher weisser Streifen oben rechts neben dem Plus-Knopf beseitigt.
+  Diagnosezeile in der Liste durch einen Hinweis ersetzt.
+
+Neu in 0.4:
+  PDF 1.5 bis 1.7: Querverweis-Streams und Objekt-Streams werden gelesen
+  (bis 10000 Objekte), beschaedigte Querverweistabellen werden repariert.
+  Weisser Streifen rechts neben dem Plus-Knopf beseitigt.
+  Beide GEO-Dateien muessen zusammen ersetzt werden.

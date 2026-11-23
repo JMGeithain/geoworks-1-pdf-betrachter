@@ -5,3 +5,6 @@ __pycache__/
 *.ct
 *.e[0-9]
 host/pdfhost
+test/g.bin
+test/g.map
+test/*.png

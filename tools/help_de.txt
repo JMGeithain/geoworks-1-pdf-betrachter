@@ -1,0 +1,50 @@
+# PDF-Betrachter Hilfe. Zeilen: "H " Ueberschrift, "T " Text, "B " Aufzaehlung,
+# "S " fette Zeile, leere Zeile = Abstand. Von Hand umbrochen (~75 Zeichen).
+H Übersicht
+T Der PDF-Betrachter zeigt PDF-Dateien (PDF 1.0 bis 1.7) mit Text, Linien,
+T Flächen, Kurven und Bildern an, auch JPEG-Bilder und Transparenz.
+T Seiten lassen sich vergrößern, verschieben und ausdrucken.
+
+S Zum Blättern in dieser Hilfe...
+B Die Knöpfe Seite hoch und Seite runter unten im Fenster benutzen, auf die
+B Bildlaufleiste rechts klicken oder die Tasten 8 / 2 und 9 / 3 drücken.
+
+H Dateien öffnen
+T Datei / Öffnen zeigt die Ordner und PDF-Dateien, zuerst im Ordner DOCUMENT.
+B Klick auf eine Datei oder Eingabetaste öffnet sie, 8 / 2 wählt aus.
+B [NAME] ist ein Ordner, [..] oder die Rücktaste führt eine Ebene höher.
+B Esc kehrt zum geöffneten Dokument zurück.
+T Mit dem passenden Eintrag in der GEOS.INI öffnet ein Doppelklick auf eine
+T PDF-Datei im GeoManager den Betrachter direkt (siehe LIESMICH.TXT).
+
+H Blättern und Zoom
+T Die Knöpfe oben rechts: Erste, Zurück, Weiter und Letzte Seite,
+T dazu - und + für den Zoom.
+B Bildlaufleisten: die Pfeile schieben, ein Klick in die Leiste springt dorthin.
+B Mausrad: schiebt die Seite nach oben oder unten.
+S Tasten (Ziffernblock):
+B 9 / 3: Bild auf / Bild ab, am Seitenende geht es zur nächsten Seite.
+B 8 2 4 6: Seite schieben.
+B 7 / 1: erste / letzte Seite.
+B + / -: Zoom.
+B Leertaste wie Bild ab, n / p Seite vor / zurück, j / k schieben.
+
+H Farben
+T Mit 64K-, 32K- oder TrueColor-Bildschirmtreibern erscheinen Text, Flächen
+T und Bilder in ihren echten Farben. Der Betrachter erkennt den Treiber beim
+T Start am Eintrag device im Abschnitt [screen 0] der GEOS.INI.
+B Taste e: Echtfarben ein- oder ausschalten.
+B Die Statuszeile zeigt Echtfarben oder 16 Farben.
+T Mit 16-Farben-Treibern werden Farben und Bilder auf die 16 GeoWorks-Farben
+T gerastert.
+
+H Drucken und Faxen
+T Datei / Drucken öffnet den gewohnten GeoWorks-Druckdialog. Gedruckt werden
+T alle Seiten (bis 70), eingepasst in den bedruckbaren Bereich des Papiers.
+T Datei / Faxen sendet das Dokument über den Faxtreiber.
+
+H Grenzen
+B Verschlüsselte PDF-Dateien lassen sich nicht öffnen.
+B Progressive JPEG- und CMYK-JPEG-Bilder erscheinen als graue Fläche.
+B Eingebettete TrueType-Schriften werden durch GeoWorks-Schriften ersetzt.
+B Sehr große Bilder werden gröber gezeichnet, wenn der Speicher nicht reicht.

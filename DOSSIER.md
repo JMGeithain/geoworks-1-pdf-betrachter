@@ -1,6 +1,6 @@
 # Dossier: PDF-Betrachter für GeoWorks Ensemble 1.2
 
-Stand: 22. November 2026, Version 0.12d
+Stand: 23. November 2026, Version 0.13
 
 ## 1. Worum es geht
 
@@ -169,6 +169,7 @@ Anzeigeliste.
   Hilfe, GenView) wird von `icon/postbuild.pl` in die fertige GEO-Datei
   eingesetzt.
 - Das Programmsymbol ist ein eigener Entwurf aus `icon/make_icon.py`.
+- Die Hilfe (`app/help.inc`) steht als Text in `tools/help_de.txt`; `tools/gen_help.py` macht daraus `app/helptext.inc`. `test/help_preview.py` zeichnet die Hilfeseite im 8086-Emulator (Unicorn) als Bild.
 - Die Echtfarbenerkennung liest `GEOS.INI`, Abschnitt `[screen 0]`, Zeile
   `device`. Zeilen mit `;` werden übersprungen. Die Statuszeile zeigt
   „Echtfarben“ oder „16 Farben (n)“ mit einem Prüfcode.
@@ -264,6 +265,7 @@ python3 tools/dl2png.py out/x-0.dl out/x.png
 | 0.11 | Echtfarben mit 64K-Treibern, Erkennung über GEOS.INI |
 | 0.12 | Externe Bildspeicher (schärfere Bilder), schnelleres JPEG, faire Platzverteilung |
 | 0.12d | Schneller bei Bildseiten, nur ein Bildspeicher („Speicher voll“ behoben) |
+| 0.13 | Hilfe im Stil der GeoWorks-Hilfefenster (Titel, Textseite, Bildlaufleiste, Knöpfe) |
 
 Die vollständige Liste steht in `dist/LIESMICH.TXT`.
 

@@ -89,7 +89,16 @@
 %define L_PK      (L_XSEG+86)               ; printing: page counter
 %define L_PN      (L_XSEG+88)               ; pages to print
 %define L_EXTP    (L_XSEG+90)               ; NEXT far pointers for pdf_set_ext
-%define L_SIZE    (L_XSEG+90+4*NEXT)
+%define L_HLP     (L_XSEG+90+4*NEXT)       ; help page (help.inc)
+%define LH_TOP    (L_HLP+0)                 ; first line shown
+%define LH_N      (L_HLP+2)                 ; number of lines
+%define LH_ROWS   (L_HLP+4)                 ; lines on the page
+%define LH_BTN    (L_HLP+6)                 ; y of the buttons
+%define LH_BOT    (L_HLP+8)                 ; bottom of the text page
+%define LH_SBX    (L_HLP+10)                ; x of its scroll bar
+%define LH_T0     (L_HLP+12)                ; thumb top / bottom
+%define LH_T1     (L_HLP+14)
+%define L_SIZE    (L_HLP+16)
 %define PC_CHUNK  0x3c                      ; PrintControl chunk in resource 3 (postbuild.pl)
 %define MAX_PRINT 70                        ; pages per print job (70 * A4 < 64K points)
 %define XREF_SIZE 40000                     ; 10000 object entries (PDF 1.5 xref streams)
@@ -357,7 +366,12 @@ paint:
  call paint_list
  jmp .bar
 .textpage:
+ cmp word [V_MODE],3
+ je .helppage
  call paint_text
+ jmp .bar
+.helppage:
+ call paint_help
  jmp .bar
 .pagemode:
  call clamp_scroll
@@ -1228,7 +1242,13 @@ kbd_char:
  je .pagekeys
  cmp word [V_MODE],1
  je .listkeys
- call leave_page                  ; info/help: any key returns
+ cmp word [V_MODE],3
+ jne .infokey
+ call help_key                    ; help: scroll keys, Esc / Enter close
+ cmp word [V_MODE],3
+ je .redraw
+.infokey:
+ call leave_page                  ; info: any key returns
  jmp .redraw
 .listkeys:
  ; ---- file list keys ----
@@ -1962,7 +1982,13 @@ mouse_select:
  je .pageclick
  cmp word [V_MODE],1
  je .listclick
- call leave_page                  ; info/help: click returns
+ cmp word [V_MODE],3
+ jne .infoclick
+ call help_click                  ; help: buttons and scroll bar
+ cmp word [V_MODE],3
+ je .redraw
+.infoclick:
+ call leave_page                  ; info: click returns
  jmp .redraw
 .listclick:
  ; file list: scroll bar moves the selection, click on a row opens it
@@ -3171,6 +3197,12 @@ menu_info:
  mov ax,2
  jmp short show_text
 menu_help:
+ cmp word [V_INIT],0
+ je show_text.r
+ push es
+ mov es,[V_LSEG]
+ mov word [es:LH_TOP],0
+ pop es
  mov ax,3
 show_text:
  cmp word [V_INIT],0
@@ -3203,10 +3235,6 @@ paint_text:
  xor ax,ax
  call set_tcol
  mov si,t_info
- cmp word [V_MODE],2
- je .go
- mov si,t_help
-.go:
  mov bx,VIEW_TOP+14
 .line:
  mov al,[cs:si]                   ; font size byte, 0 = end
@@ -3252,7 +3280,7 @@ paint_text:
 ; text pages: size byte, text, NUL ... 0   (GEOS charset: 0x9F u, 0x8A a, 0x85 O, 0x9A o umlaut)
 t_info:
  db 18,'PDF Betrachter',0
- db 12,'Version 0.12d f',0x9f,'r GeoWorks Ensemble 1.2',0
+ db 12,'Version 0.13 f',0x9f,'r GeoWorks Ensemble 1.2',0
  db 10,' ',0
  db 11,'Zeigt PDF-Dateien (PDF 1.0 bis 1.7) mit Text, Linien,',0
  db 11,'Fl',0x8a,'chen, Kurven und Bildern (auch JPEG und Transparenz).',0
@@ -3261,20 +3289,8 @@ t_info:
  db 11,'Geschrieben mit dem pcgeos-1-sdk-v2 (NASM und Open Watcom).',0
  db 11,'Testdateien aus dem FreeGEOS-PDF-Betrachter von Jirka Kunze.',0
  db 0
-t_help:
- db 16,'Hilfe',0
- db 11,'Datei / ',0x85,'ffnen: Ordner und PDF-Dateien zeigen (zuerst DOCUMENT).',0
- db 11,'In der Liste: Klick oder Eingabe ',0x9a,'ffnet, 8 / 2 w',0x8a,'hlt.',0
- db 11,'[NAME] ist ein Ordner, [..] oder R',0x9f,'cktaste f',0x9f,'hrt eine Ebene h',0x9a,'her.',0
- db 10,' ',0
- db 11,'Kn',0x9a,'pfe oben: Erste, Zur',0x9f,'ck, Weiter, Letzte, - und + (Zoom).',0
- db 11,'Scroll-Leisten: Pfeile schieben, Klick in die Leiste springt.',0
- db 10,' ',0
- db 11,'Ziffernblock: 9 / 3 Bild auf / ab, 8 2 4 6 schieben,',0
- db 11,'7 / 1 erste / letzte Seite, + / - Zoom.',0
- db 11,'Leertaste, n / p und j / k gehen ebenfalls.',0
- db 11,'e: Echtfarben ein / aus (wird beim Start aus GEOS.INI erkannt).',0
- db 0
+
+%include "help.inc"
 
 clamp_scroll:
  mov ax,[V_PW]

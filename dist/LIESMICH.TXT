@@ -1,4 +1,4 @@
-PDF-Betrachter fuer GeoWorks Ensemble 1.2 - Testversion 0.12d
+PDF-Betrachter fuer GeoWorks Ensemble 1.2 - Testversion 0.13
 
 Installation (GeoWorks vorher sauber beenden):
   PDFCORE.GEO  ->  GEOWORKS\SYSTEM
@@ -37,6 +37,14 @@ PDF-Dateien per Doppelklick im GeoManager oeffnen:
   Der erste Eintrag ist das Symbol, der zweite das Programm, das
   startet. PDFVIEW.GEO muss in WORLD liegen. Danach GeoWorks neu
   starten. Der PDF-Betrachter sollte vorher geschlossen sein.
+
+Neu in 0.13:
+  Neue Hilfe im Stil der GeoWorks-Hilfefenster (wie im GeoMaler):
+  Titelleiste, weisse Textseite mit fetten Ueberschriften und
+  Aufzaehlungen, Bildlaufleiste und die Knoepfe "Seite hoch",
+  "Seite runter" und "Schliessen". Tasten: 8 / 2 Zeile, 9 / 3 und
+  Leertaste Seite, Esc oder Eingabe schliesst.
+  Nur PDFVIEW.GEO ersetzen.
 
 Neu in 0.12d:
   Schneller bei Seiten mit Bildern (z.B. Bildschirmfotos in CCOM4.PDF):

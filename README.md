@@ -2,7 +2,8 @@
 
 Ein PDF-Betrachter für das deutsche GeoWorks Ensemble 1.2 (Kernel 1.28):
 Text, Vektorgrafik, Bilder (auch JPEG und Transparenz), PDF 1.0–1.7,
-Drucken über den GeoWorks-Druckdialog, Echtfarben mit 64K-Bildschirmtreibern.
+Drucken über den GeoWorks-Druckdialog, Echtfarben mit 64K-Bildschirmtreibern,
+Text einer Seite in die Zwischenablage kopieren.
 
 ![Programmsymbol](icon/preview.png)
 

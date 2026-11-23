@@ -16,7 +16,8 @@
 
 ; ---- process DGROUP variables ----
 ; The method table starts at 0x52 and takes 6 bytes per G1_METHOD; it must
-; end below 0xA0, so at most 13 methods. (11 used.)
+; end below 0xA0, so at most 13 methods. (13 used; MSG_META_ATTACH goes
+; straight to the superclass.)
 %define V_WSEG    0xA0      ; work block segment (locked for the app's life)
 %define V_WHAN    0xA2      ; work block handle
 %define V_DSEG    0xA4      ; display list block segment
@@ -109,6 +110,11 @@
 %define V_FW      0xEC      ; full window width (V_VW/V_VH = page area)
 %define V_FH      0xEE
 %define V_ALB     0xF0      ; segment of the copied launch data, 0 = none
+; ---- page text dialog (resource TX_RES, built by postbuild.pl) ----
+%define V_TXP     0xF2      ; page whose text the dialog holds + 1, 0 = none
+%define V_MBP     0xF4      ; BP of the last mouse press (0x40 = double click)
+%define TX_RES    11        ; object block of the dialog "Text der Seite"
+%define TX_CHUNK  0x28      ; its GenText
 ; copy of AppLaunchBlock bytes 0x9F..0x17E (as built by GeoManager 1.2)
 %define ALB_FROM  0x9f
 %define ALB_LEN   0xe0
@@ -159,22 +165,87 @@
 %define H_TC      27        ; true colour display (64K driver), key e
 %define H_PRN     28        ; printing: render without true colour
 %define H_EXTH    32        ; handles of the external image blocks (NEXT words)
-%define H_EXTS    40        ; their segments (locked while the page is shown)
+%define H_EXTS    40        ; their segments while rendering; afterwards the
+                            ; blocks are unlocked (movable) and locked per repaint
 %define H_TCD     29        ; GEOS.INI check: 1 path 2 open 3 section 4 device 5 no key 9 ok
 
 G1_METHOD 0x0a01, app_open
 G1_METHOD 0x0a03, app_close
-G1_METHOD 0x0004, meta_attach
-G1_METHOD 0x0057, view_closed
-G1_METHOD 0x0049, view_exposed
-G1_METHOD 0x007b, kbd_char
-G1_METHOD 0x00c3, mouse_select
-G1_METHOD 0x0c00, menu_open
-G1_METHOD 0x0c01, menu_close
-G1_METHOD 0x0c02, menu_print
-G1_METHOD 0x0c03, menu_info
-G1_METHOD 0x0c04, menu_help
-G1_METHOD 0x0259, print_docname
+G1_METHOD 0x0057, w_view_closed
+G1_METHOD 0x0049, w_view_exposed
+G1_METHOD 0x007b, w_kbd_char
+G1_METHOD 0x00c3, w_mouse_select
+G1_METHOD 0x0c00, w_menu_open
+G1_METHOD 0x0c01, w_menu_close
+G1_METHOD 0x0c02, w_menu_print
+G1_METHOD 0x0c03, w_menu_info
+G1_METHOD 0x0c04, w_menu_help
+G1_METHOD 0x0c05, w_menu_copyall
+G1_METHOD 0x0259, w_print_docname
+
+; ----------------------------------------------------------------------
+; The display list block is locked only while one of our methods runs
+; (w_* below), so that GeoWorks can move it between messages: with it and
+; the work, xref and image blocks locked all the time, GeoWrite ran out of
+; memory ("Speicher voll") when the page text was pasted.
+; Entered with DS = dgroup; DL_IN/DL_OUT keep all registers and flags.
+; ----------------------------------------------------------------------
+%macro DLWRAP 1
+w_%1:
+ call dl_in
+ push ds
+ push cs
+ call %1
+ pop ds
+ call dl_out
+ retf
+%endmacro
+DLWRAP view_closed
+DLWRAP view_exposed
+DLWRAP kbd_char
+DLWRAP mouse_select
+DLWRAP menu_open
+DLWRAP menu_close
+DLWRAP menu_print
+DLWRAP menu_info
+DLWRAP menu_help
+DLWRAP menu_copyall
+DLWRAP print_docname
+
+dl_in:
+ push ax
+ push bx
+ push cx
+ push dx
+ mov bx,[V_DHAN]
+ or bx,bx
+ jz .r
+ KCALL 5                          ; MemLock -> AX segment (may have moved)
+ mov [V_DSEG],ax
+.r:
+ pop dx
+ pop cx
+ pop bx
+ pop ax
+ ret
+
+dl_out:
+ pushf
+ push ax
+ push bx
+ push cx
+ push dx
+ mov bx,[V_DHAN]
+ or bx,bx
+ jz .r
+ KCALL 6                          ; MemUnlock
+.r:
+ pop dx
+ pop cx
+ pop bx
+ pop ax
+ popf
+ ret
 
 ; ======================================================================
 ; lifecycle (as in the SDK starter)
@@ -190,14 +261,11 @@ app_open:
 app_close:
  push es
  pop ds
+ call dl_in                       ; shutdown reads the DL block header
  call shutdown
  xor cx,cx
  retf
 
-meta_attach:
- mov di,PROCESS_CLASS
- KCALL 489
- retf
 
 ; DX = AppLaunchBlock handle (DS = dgroup): keep the document part
 grab_alb:
@@ -286,8 +354,28 @@ view_exposed:
  cmp bx,[es:L_POY]
  je .r
 .moved:
+ ; the GenView scrolled by itself (mouse wheel): turn the vertical move
+ ; into Bild ab / Bild auf, in the page and in the file list
+ mov cx,bx
+ sub cx,[es:L_POY]
  mov [es:L_POX],ax
  mov [es:L_POY],bx
+ cmp word [V_MODE],0
+ je .wheel
+ cmp word [V_MODE],1
+ jne .rep
+.wheel:
+ or cx,cx
+ jz .rep
+ mov cx,0xff97                    ; CS_CONTROL + VC_NEXT (Bild ab)
+ jg .key
+ mov cx,0xff96                    ; VC_PREVIOUS (Bild auf)
+.key:
+ xor dx,dx
+ push cs
+ call kbd_char
+ jmp short .r
+.rep:
  call repaint
 .r:
  retf
@@ -493,6 +581,38 @@ status_bar:
  dec di
  jmp .t
 .pg1:
+ push ds                          ; name of the open file (from its path)
+ mov ds,[V_LSEG]
+ mov si,L_FULL
+ mov bx,si
+.fn1:
+ lodsb
+ or al,al
+ jz .fn2
+ cmp al,'\'
+ je .fn3
+ cmp al,':'
+ jne .fn1
+.fn3:
+ mov bx,si
+ jmp short .fn1
+.fn2:
+ mov si,bx
+ mov cx,12
+.fn4:
+ lodsb
+ or al,al
+ jz .fn5
+ stosb
+ loop .fn4
+.fn5:
+ pop ds
+ cmp di,L_MSG
+ je .fn6
+ mov al,' '
+ stosb
+ stosb
+.fn6:
  mov si,s_page
  call copy_cs
  mov ax,[V_PAGE]
@@ -590,7 +710,7 @@ put_num:
  ret
 
 s_page:  db 'Seite ',0
-s_lstat: db 'Dateiauswahl: Klick oder Eingabe',0
+s_lstat: db 'Dateiauswahl: Doppelklick oder Eingabe',0
 s_istat: db 'Klick oder Taste: zur',0x9f,'ck',0
 s_of:    db '/',0
 s_zoom:  db '  Zoom ',0
@@ -1028,14 +1148,17 @@ replay:
  xor ah,ah
  mov bx,ax
  shl bx,1
- mov bx,[H_EXTS+bx]
+ mov bx,[H_EXTH+bx]
  lodsw                            ; offset
  mov dx,ax
  lodsw                            ; length
  push si                          ; continue here
  or bx,bx
  jz .extx
- mov ax,bx
+ push bx                          ; handle, unlocked again below
+ push dx
+ KCALL 5                          ; MemLock -> AX segment
+ pop dx
  push ax
  mov es,ax                        ; header and colour table into the block
  push di
@@ -1063,6 +1186,8 @@ replay:
  rep movsw
  pop di
  pop ds
+ pop bx
+ KCALL 6                          ; MemUnlock
 .extx:
  pop si
  jmp .next
@@ -1922,6 +2047,7 @@ thumb:
 ; mouse: CX = x, DX = y. Returns AX = MRF_PROCESSED.
 ; ----------------------------------------------------------------------
 mouse_select:
+ mov [V_MBP],bp                   ; ButtonInfo: 0x40 = double press
  cmp word [V_INIT],0
  je .done
  call clr_prdiag
@@ -2052,8 +2178,14 @@ mouse_select:
  add ax,[V_LTOP]
  cmp ax,[V_NPDF]
  jae .done
- mov [V_LSEL],ax
+ test word [V_MBP],0x40           ; double click on the marked row: open
+ jz .lmark
+ cmp ax,[V_LSEL]
+ jne .lmark
  call open_selected
+ jmp .redraw
+.lmark:                           ; single click: mark only
+ mov [V_LSEL],ax
  jmp .redraw
 .pageclick:
  cmp cx,[V_VW]
@@ -2729,7 +2861,7 @@ paint_list:
  ret
 s_ltitle: db 'Ordner:',0
 s_none:   db 'Keine Ordner und PDF-Dateien gefunden.',0
-s_lhint:  db 'Klick oder Eingabe ',0x9a,'ffnet  -  [..] oder R',0x9f,'cktaste: Ordner h',0x9a,'her  -  Esc: zur',0x9f,'ck',0
+s_lhint:  db 'Doppelklick oder Eingabe ',0x9a,'ffnet  -  [..] oder R',0x9f,'cktaste: Ordner h',0x9a,'her  -  Esc: zur',0x9f,'ck',0
 
 ; keep the selection visible
 list_clamp:
@@ -2933,6 +3065,7 @@ menu_close:
 .nf:
  mov word [V_NPAGES],0
  mov word [V_ERR],0
+ call text_clear
  call relist
  mov word [V_MODE],1
  call repaint
@@ -3133,6 +3266,7 @@ print_docname:
  retf
 
 s_docname: db 'PDF-Dokument',0
+%include "text.inc"
 
 ; tell the PrintControl (interface block, chunk PC_CHUNK) the page range
 ; 1..n of the document, so its dialog offers all pages
@@ -3280,7 +3414,7 @@ paint_text:
 ; text pages: size byte, text, NUL ... 0   (GEOS charset: 0x9F u, 0x8A a, 0x85 O, 0x9A o umlaut)
 t_info:
  db 18,'PDF Betrachter',0
- db 12,'Version 0.13 f',0x9f,'r GeoWorks Ensemble 1.2',0
+ db 12,'Version 0.14i f',0x9f,'r GeoWorks Ensemble 1.2',0
  db 10,' ',0
  db 11,'Zeigt PDF-Dateien (PDF 1.0 bis 1.7) mit Text, Linien,',0
  db 11,'Fl',0x8a,'chen, Kurven und Bildern (auch JPEG und Transparenz).',0
@@ -3554,6 +3688,7 @@ open_doc:
  call set_error
  ret
 .opened:
+ mov word [V_TXP],0               ; new document: page text again
  push word [V_WSEG]
  xor ax,ax
  push ax
@@ -3777,6 +3912,13 @@ render_page:
  ret
 .ok:
  mov word [V_ERR],0
+ push es
+ mov es,[V_DSEG]
+ cmp byte [es:H_PRN],0
+ pop es
+ jne .notx
+ call text_fill                   ; page text for the dialog "Text der Seite"
+.notx:
 .r:
  ret
 
@@ -3829,10 +3971,14 @@ ext_unlock:
  mov es,[es:H_EXTS+si]
  cmp byte [es:DL_HDR],0
  pop es
- jne .n
+ jne .used
  mov word [es:H_EXTH+si],0
  mov word [es:H_EXTS+si],0
  KCALL 2                          ; MemFree
+ jmp short .n
+.used:                            ; keep it, but movable: locked blocks
+ mov word [es:H_EXTS+si],0        ; (64 KB each) left GeoWorks without
+ KCALL 6                          ; memory for dialogs. MemUnlock
 .n:
  add si,2
  cmp si,2*NEXT

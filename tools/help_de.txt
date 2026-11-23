@@ -11,7 +11,7 @@ B Bildlaufleiste rechts klicken oder die Tasten 8 / 2 und 9 / 3 drücken.
 
 H Dateien öffnen
 T Datei / Öffnen zeigt die Ordner und PDF-Dateien, zuerst im Ordner DOCUMENT.
-B Klick auf eine Datei oder Eingabetaste öffnet sie, 8 / 2 wählt aus.
+B Klick markiert, Doppelklick oder Eingabetaste öffnet, 8 / 2 wählt aus.
 B [NAME] ist ein Ordner, [..] oder die Rücktaste führt eine Ebene höher.
 B Esc kehrt zum geöffneten Dokument zurück.
 T Mit dem passenden Eintrag in der GEOS.INI öffnet ein Doppelklick auf eine
@@ -43,8 +43,17 @@ T Datei / Drucken öffnet den gewohnten GeoWorks-Druckdialog. Gedruckt werden
 T alle Seiten (bis 70), eingepasst in den bedruckbaren Bereich des Papiers.
 T Datei / Faxen sendet das Dokument über den Faxtreiber.
 
+H Text kopieren
+T Bearbeiten / Text der Seite zeigt den Text der aktuellen Seite in einem
+T Fenster. Dort lässt sich Text mit der Maus markieren.
+B Kopieren legt den markierten Text in die Zwischenablage.
+B Alles kopieren legt den ganzen Seitentext in die Zwischenablage.
+T Danach z.B. in GeoWrite oder im Notizblock mit Bearbeiten / Einkleben
+T einfügen. Das Fenster darf offen bleiben, es folgt beim Blättern.
+
 H Grenzen
 B Verschlüsselte PDF-Dateien lassen sich nicht öffnen.
 B Progressive JPEG- und CMYK-JPEG-Bilder erscheinen als graue Fläche.
 B Eingebettete TrueType-Schriften werden durch GeoWorks-Schriften ersetzt.
+B Text in Spalten wird in der Reihenfolge der PDF-Datei kopiert.
 B Sehr große Bilder werden gröber gezeichnet, wenn der Speicher nicht reicht.

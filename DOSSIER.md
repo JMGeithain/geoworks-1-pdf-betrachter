@@ -40,6 +40,21 @@ Der Betrachter besteht aus zwei Dateien:
 - Eingebettete Type3-Schriften, wie sie der GeoWorks-PDF-Druckertreiber
   erzeugt, werden als Umrisse gezeichnet, auch gedreht.
 
+### Text kopieren
+- Menü **Bearbeiten / Text der Seite**: ein Dialog mit dem GeoWorks-Textobjekt
+  (wie im Notizblock) zeigt den Text der aktuellen Seite. Markieren und
+  „Kopieren“ oder „Alles kopieren“ legt ihn in die Zwischenablage; einkleben
+  z.B. in GeoWrite oder im Notizblock.
+- Der Text wird aus der Anzeigeliste in der Reihenfolge der PDF gesammelt.
+  Zeilenwechsel und Leerzeichen werden aus den Positionen geschätzt
+  (Zeichenbreiten von Times/Helvetica); gedrehter Text, der Buchstabe für
+  Buchstabe vorliegt, wird wieder zu Wörtern zusammengesetzt.
+
+### Bedienung
+- Dateiauswahl: Klick markiert, Doppelklick oder Eingabe öffnet.
+- Mausrad bzw. Bild auf/ab blättern in Seite und Dateiauswahl.
+- Name der offenen Datei in der Statuszeile.
+
 ### Grafik
 - Pfade, Bézier-Kurven, Füllen (Nonzero/Even-Odd), Linien, Rechtecke, Clipping.
 - Transformationen, Formular-XObjects mit eigener Matrix und eigenen Ressourcen.
@@ -170,6 +185,7 @@ Anzeigeliste.
   eingesetzt.
 - Das Programmsymbol ist ein eigener Entwurf aus `icon/make_icon.py`.
 - Die Hilfe (`app/help.inc`) steht als Text in `tools/help_de.txt`; `tools/gen_help.py` macht daraus `app/helptext.inc`. `test/help_preview.py` zeichnet die Hilfeseite im 8086-Emulator (Unicorn) als Bild.
+- `test/tx_test.py` / `tx_test2.py` prüfen das Sammeln des Seitentexts aus echten Anzeigelisten (`host/pdfhost` erzeugt sie), `test/replay_test.py` das Zeichnen mit entsperrtem Bildspeicher.
 - Die Echtfarbenerkennung liest `GEOS.INI`, Abschnitt `[screen 0]`, Zeile
   `device`. Zeilen mit `;` werden übersprungen. Die Statuszeile zeigt
   „Echtfarben“ oder „16 Farben (n)“ mit einem Prüfcode.
@@ -186,7 +202,7 @@ weitere Programme.
 | Speicher | MemAlloc 0, MemFree 2, MemLock 5, MemUnlock 6 |
 | Dateien | FileOpen 52, FileClose 54, FileRead 58, FileEnum 65 |
 | Verzeichnisse | FilePushDir 73, FilePopDir 74, FileSetStandardPath 76 (AX = 0: GEOWORKS-Ordner) |
-| Geodes und Objekte | GeodeGetResourceHandle 150, ObjMessage 169 |
+| Geodes und Objekte | GeodeGetResourceHandle 150, ObjMessage 169 (DI = 0x8000 Aufruf, 0x4000 in die Warteschlange) |
 | Zeichnen | GrApplyRotation 308, GrApplyTranslation 310, GrDrawBitmap 326, GrDrawText 330, GrFillRect 336 |
 | Farben | GrSetAreaColor 355, GrSetTextColor 359 |
 | Fensterbereich | GrGetWinBounds 440 |
@@ -233,6 +249,29 @@ weitere Programme.
 - 32-Bit-Divisionen sind auf dem 8086 teuer. In Schleifen über Bildpunkte
   besser einfache Zählschleifen verwenden.
 
+### Textobjekt, Zwischenablage, Maus (UI.GEO 1.2)
+
+- Methodentabelle einer Klasse: Kopf mit Oberklasse (far), Anzahl der
+  Methoden im Wort an +6, ab +18 die Nachrichtennummern, danach je ein
+  Zeiger (Offset, Ressource). Die VisText-Tabelle hat 120 Einträge und
+  beginnt mit 0x0102; wer um einen Eintrag verrutscht, ordnet jedem Code die
+  Nachbar-Nachricht zu.
+- Textobjekt: 0x2200 Text ersetzen (DX:BP Zeichenkette, CX = 0: bis NUL),
+  0x2206 Bereich markieren (CX Anfang, DX Ende, wird auf die Länge
+  begrenzt), 0x011f Kopieren (0x011e Ausschneiden, 0x0120 Einkleben).
+  0x2200 geht auch, bevor der Dialog je geöffnet war (wie im GeoManager).
+- Ein GenInteraction-Dialog (Attributbyte 0x62) als Kind eines Menüs wird
+  von Motif als Menüpunkt dargestellt, der ihn öffnet. Ein GenTrigger mit
+  Attribut 0x80 im Zustandswort (0xc080) und ohne Ausgabe schließt ihn.
+- In `object_block` des SDK ist Chunk 0x22 immer ein Datenchunk: Objekte ab
+  0x24 anlegen.
+- MSG_META_START_SELECT: BP-Bit 0x40 = Doppelklick (so auch der GeoManager).
+- Mausrad und Bild auf/ab verschieben das GenView selbst; das Programm sieht
+  nur den neuen Ursprung beim nächsten Neuzeichnen.
+- **Speicher:** dauernd gesperrte 64-KB-Blöcke lassen anderen Programmen
+  (GeoWrite beim Einkleben) keinen Platz. Der Betrachter sperrt Seiten- und
+  Bildspeicher nur noch, solange eine seiner Methoden läuft.
+
 ## 6. Bauen und Testen
 
 ```sh
@@ -266,6 +305,7 @@ python3 tools/dl2png.py out/x-0.dl out/x.png
 | 0.12 | Externe Bildspeicher (schärfere Bilder), schnelleres JPEG, faire Platzverteilung |
 | 0.12d | Schneller bei Bildseiten, nur ein Bildspeicher („Speicher voll“ behoben) |
 | 0.13 | Hilfe im Stil der GeoWorks-Hilfefenster (Titel, Textseite, Bildlaufleiste, Knöpfe) |
+| 0.14 | Text kopieren (Bearbeiten / Text der Seite), weniger gesperrter Speicher, Dateiname in der Statuszeile, Doppelklick in der Dateiauswahl, Mausrad |
 
 Die vollständige Liste steht in `dist/LIESMICH.TXT`.
 
@@ -287,6 +327,11 @@ Die vollständige Liste steht in `dist/LIESMICH.TXT`.
   gedruckt wird immer in 16 Farben.
 - **Echtfarbenbilder** sind bei mehreren großen Fotos pro Seite gröber, weil
   nur ein Bildspeicher von 64 KB zur Verfügung steht.
+- **Dateiname in der Titelzeile:** die Nachricht zum Ändern der Beschriftung
+  des Hauptfensters ist für GeoWorks 1.2 noch nicht gefunden; der Name steht
+  in der Statuszeile.
+- **Arbeits- und Querverweisspeicher** (64 + 40 KB) bleiben gesperrt, weil
+  die Bibliothek Zeiger hinein speichert.
 - **Geschwindigkeit:** Seiten mit vielen Bildern brauchen im Emulator spürbar
   Zeit.
 

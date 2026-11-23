@@ -1,4 +1,4 @@
-PDF-Betrachter fuer GeoWorks Ensemble 1.2 - Testversion 0.13
+PDF-Betrachter fuer GeoWorks Ensemble 1.2 - Testversion 0.14i
 
 Installation (GeoWorks vorher sauber beenden):
   PDFCORE.GEO  ->  GEOWORKS\SYSTEM
@@ -9,7 +9,8 @@ Installation (GeoWorks vorher sauber beenden):
   BILDER2.PDF  ->  GEOWORKS\DOCUMENT  (JPEG und PNG mit Transparenz)
 
 Menue Datei: Oeffnen (Ordner und PDFs, zuerst DOCUMENT), Schliessen, Info, Hilfe.
-In der Liste: [NAME] ist ein Ordner, [..] oder Ruecktaste = eine Ebene hoeher.
+In der Liste: Klick markiert, Doppelklick oder Eingabe oeffnet.
+[NAME] ist ein Ordner, [..] oder Ruecktaste = eine Ebene hoeher.
 
 Maus:
   Knoepfe oben rechts: Erste, Zurueck, Weiter, Letzte, - und + (Zoom)
@@ -37,6 +38,21 @@ PDF-Dateien per Doppelklick im GeoManager oeffnen:
   Der erste Eintrag ist das Symbol, der zweite das Programm, das
   startet. PDFVIEW.GEO muss in WORLD liegen. Danach GeoWorks neu
   starten. Der PDF-Betrachter sollte vorher geschlossen sein.
+
+Neu in 0.14i: Mausrad / Bild auf, Bild ab blaettern auch in der Dateiauswahl.
+Neu in 0.14h: Dateiauswahl - Klick markiert, Doppelklick oeffnet.
+Neu in 0.14g: auch der Seitenspeicher (64 KB) ist zwischen den Aktionen
+  verschiebbar - mehr Platz fuer GeoWrite & Co. beim Einkleben.
+Neu in 0.14f: Bildspeicher wird nach dem Aufbau der Seite freigegeben
+  (verschiebbar), damit GeoWorks Platz fuer Dialoge behaelt.
+Neu in 0.14e: Dateiname der offenen PDF links in der Statuszeile.
+
+Neu in 0.14: Text kopieren
+  Menue Bearbeiten / Text der Seite: zeigt den Text der aktuellen Seite.
+  Text mit der Maus markieren und "Kopieren" druecken, oder
+  "Alles kopieren" fuer die ganze Seite. Danach z.B. im Notizblock oder in
+  GeoWrite mit Bearbeiten / Einkleben einfuegen. Das Fenster darf offen
+  bleiben und folgt beim Blaettern.
 
 Neu in 0.13:
   Neue Hilfe im Stil der GeoWorks-Hilfefenster (wie im GeoMaler):

@@ -152,7 +152,8 @@ class Geos:
                 self.canvas.paste(self.area, (x0, y0, x1, y1))
         elif o == 326:  # GrDrawBitmap, 24 bit uncompacted only
             wd, ht, comp, typ = struct.unpack('<HHBB', self.rd(ds, si, 6))
-            assert (comp, typ) == (0, 3) and ht == 1, (comp, typ, ht)
+            if (comp, typ) != (0, 3) or ht != 1:
+                self.other_bitmaps = getattr(self, 'other_bitmaps', 0) + 1; self.cf(False); return
             px = self.rd(ds, si + 6, wd * 3)
             for i in range(wd):
                 x = ax + i
